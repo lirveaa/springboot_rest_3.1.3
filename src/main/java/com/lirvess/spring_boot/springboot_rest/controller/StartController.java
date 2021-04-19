@@ -4,11 +4,17 @@ package com.lirvess.spring_boot.springboot_rest.controller;
 import com.lirvess.spring_boot.springboot_rest.dao.UserDao;
 import com.lirvess.spring_boot.springboot_rest.model.Role;
 import com.lirvess.spring_boot.springboot_rest.model.User;
+import com.lirvess.spring_boot.springboot_rest.service.UserDetailsServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.security.Principal;
@@ -18,58 +24,37 @@ import java.util.List;
 import java.util.Set;
 
 @Controller
-@RequestMapping("/")
 public class StartController {
 
-    private static boolean isInit = false;
+    private UserDetailsServiceImpl userService;
 
-    @Autowired
-    private UserDao userService;
+    public StartController(UserDetailsServiceImpl userService) {
+        this.userService = userService;
+    }
 
     @GetMapping("/")
     public String indexPage() {
-        return "redirect: /login";
+        return "redirect:/login";
+    }
+
+    @GetMapping("/login")
+    public  String getLoginWithEmail(@RequestParam(value = "error", required = false) String error,
+                                     @RequestParam(value = "logout",required = false)String logout,
+                                     Model model){
+        model.addAttribute("error", error!=null);
+        model.addAttribute("logout", logout!= null);
+        return "login_page";
     }
 
     @GetMapping("hello")
-    public String printWelcome(ModelMap model, Principal principal) {
-        List<String> messages = new ArrayList<>();
-        messages.add("Hello, " + principal.getName() + "!");
-        messages.add("I'm Spring MVC-SECURITY application");
-        messages.add("Spring Boot version ");
-        model.addAttribute("messages", messages);
-
-
-        return "hello";
+    public String printWelcome() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String userRoles = auth.getAuthorities().toString();
+        if(userRoles.contains("ROLE_ADMIN")){
+            return "redirect:/admin";
+        }
+        return "redirect:/user";
     }
-
-    private void insertDataToDatabase() {
-        System.out.println("\nInserting data ....");
-        Role roleUser = new Role(1L, "ROLE_USER");
-        Role roleAdmin = new Role(2L, "ROLE_ADMIN");
-        Set<Role> bothSet = new HashSet<Role>();
-        bothSet.add(roleUser);
-        bothSet.add(roleAdmin);
-        Set<Role> admSet = new HashSet<>();
-        admSet.add(roleAdmin);
-        Set<Role> userSet = new HashSet<>();
-        userSet.add(roleUser);
-
-        User marlo = new User("admin", "admin", 1955, admSet);
-        User john = new User("user", "user", 1960, userSet);
-        User jackson = new User("boss", "boss", 1965, bothSet);
-        User jagger = new User("Ben", "Johnson", 1956, admSet);
-        User tiger = new User("Laura", "Crawford", 1970, bothSet);
-
-        userService.save(marlo);
-        userService.save(john);
-        userService.save(jackson);
-        userService.save(jagger);
-        userService.save(tiger);
-    }
-
-
-
 
 
 

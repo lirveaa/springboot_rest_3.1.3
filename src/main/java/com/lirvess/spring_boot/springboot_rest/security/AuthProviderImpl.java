@@ -4,6 +4,7 @@ package com.lirvess.spring_boot.springboot_rest.security;
 import com.lirvess.spring_boot.springboot_rest.dao.UserDao;
 import com.lirvess.spring_boot.springboot_rest.model.Role;
 import com.lirvess.spring_boot.springboot_rest.model.User;
+import com.lirvess.spring_boot.springboot_rest.service.UserDetailsServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -22,12 +23,12 @@ import java.util.Set;
 public class AuthProviderImpl implements AuthenticationProvider {
 
     @Autowired
-    private UserDao userService;
+    private UserDetailsServiceImpl userService;
 
     @Override
     public Authentication authenticate(Authentication authentication) throws AuthenticationException {
         String login = authentication.getName();
-        User user = userService.getUserByUsername(login);
+        User user = userService.getUserByEmail(login);
 
         if (user == null) {
             throw new UsernameNotFoundException("User not found!");

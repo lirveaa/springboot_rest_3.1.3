@@ -4,6 +4,9 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
+import javax.validation.constraints.Email;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Size;
 import javax.persistence.*;
 import java.util.Collection;
 import java.util.HashSet;
@@ -15,13 +18,23 @@ import java.util.Set;
 public class User implements UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id")
     private Long id;
 
-    @Column(name = "username")
-    private String username;
+    @Column(name = "login")
+    private String login;
 
+    @Column(name = "last_name")
+    private String lastName;
+
+    @Size(max = 50, min = 2, message = "Invalid password")
     @Column(name = "password")
     private String password;
+
+    @NotBlank
+    @Email
+    @Column(name = "email")
+    private String email;
 
     @Column(name = "age")
     private int age;
@@ -32,14 +45,15 @@ public class User implements UserDetails {
     private Set<Role> roles = new HashSet<>();
 
     public User() {
-
     }
 
-    public User(String username, String password, int age, Set<Role> roles) {
-        this.username = username;
+    public User(String login, String lastName, String email, String password, int age, Set<Role> roles) {
+        this.login = login;
         this.password = password;
         this.age = age;
         this.roles = roles;
+        this.lastName = lastName;
+        this.email = email;
     }
 
     public Long getId() {
@@ -50,9 +64,12 @@ public class User implements UserDetails {
         this.id = id;
     }
 
+    public String getLogin() {
+        return login;
+    }
 
-    public void setUsername(String username) {
-        this.username = username;
+    public void setLogin(String name) {
+        login = name;
     }
 
     public void setPassword(String password) {
@@ -75,16 +92,25 @@ public class User implements UserDetails {
         this.roles = roles;
     }
 
-    public void printAllRoles() {
-        System.out.println(" === Set of roles: ");
-        for (Role role : roles) {
-            System.out.println(role);
-        }
+    public String getLastName() {
+        return lastName;
+    }
+
+    public void setLastName(String lastName) {
+        this.lastName = lastName;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
     }
 
     @Override
     public String toString() {
-        return "Username: " + username +
+        return "Username: " + login +
                 " password: " + password + " id: " + id;
     }
 
@@ -100,7 +126,7 @@ public class User implements UserDetails {
 
     @Override
     public String getUsername() {
-        return username;
+        return email;
     }
 
     @Override

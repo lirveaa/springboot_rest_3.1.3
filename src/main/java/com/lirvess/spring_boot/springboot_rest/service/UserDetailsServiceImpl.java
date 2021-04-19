@@ -1,42 +1,65 @@
 package com.lirvess.spring_boot.springboot_rest.service;
 
 import com.lirvess.spring_boot.springboot_rest.dao.UserDao;
+import com.lirvess.spring_boot.springboot_rest.model.Role;
 import com.lirvess.spring_boot.springboot_rest.model.User;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.Collections;
+import java.util.List;
+
 @Service
-public class UserDetailsServiceImpl implements UserDetailsService {
+@Transactional
+public class UserDetailsServiceImpl {
+
+    private final  UserDao userDao;
 
     @Autowired
-    private UserDao userService;
-
-    public UserDetailsServiceImpl(){
+    public UserDetailsServiceImpl(UserDao userDao) {
+        this.userDao = userDao;
     }
 
-    @Override
-    public UserDetails loadUserByUsername(String name) throws UsernameNotFoundException {
+    public User findById(Long id){
+        return userDao.findById(id).orElseThrow();
+    }
 
-        //User user = userService.getUser(name);
-        User user = userService.getUserByUsername(name);
-        if(user ==null){
-            throw new UsernameNotFoundException("User not found");
+    public User getUserByUsername(String login) {
+        return userDao.getUserByUsername(login);
+    }
+
+    public User getUserByEmail(String email) {
+        return userDao.getUserByEmail(email);
+    }
+
+    public void deleteById(Long id) {
+        userDao.deleteById(id);
+    }
+
+    public List<User> findAll() {
+        return userDao.findAll();
+    }
+
+    public boolean saveUser(User user) {
+        User userFromDB = userDao.getUserByEmail(user.getEmail());
+        if (userFromDB != null) {
+            return false;
         }
-        Set<GrantedAuthority> roles = new HashSet();
-        roles.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
-        roles.add(new SimpleGrantedAuthority("ROLE_USER"));
-
-        UserDetails userDetails =
-                new org.springframework.security.core.userdetails.User(user.getUsername(),
-                        user.getPassword(),
-                        roles);
-        return userDetails;
+        if (user.getRoles().size() == 0) {
+            user.setRoles(Collections.singleton(new Role(1L, "ROLE_USER")));
+        }
+        userDao.save(user);
+        return true;
     }
+
+    public boolean updateUser(User user) {
+
+        if (user.getRoles().size() == 0) {
+            user.setRoles(Collections.singleton(new Role(1L, "ROLE_USER")));
+        }
+        userDao.save(user);
+        return true;
+    }
+
 }

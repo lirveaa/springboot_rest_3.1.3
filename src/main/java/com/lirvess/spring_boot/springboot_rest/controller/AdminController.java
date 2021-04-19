@@ -3,54 +3,48 @@ package com.lirvess.spring_boot.springboot_rest.controller;
 import com.lirvess.spring_boot.springboot_rest.dao.UserDao;
 import com.lirvess.spring_boot.springboot_rest.model.Role;
 import com.lirvess.spring_boot.springboot_rest.model.User;
+import com.lirvess.spring_boot.springboot_rest.service.UserDetailsServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-@RestController
-@RequestMapping("/admin")
+@Controller
 public class AdminController {
 
-    @Autowired
-    public UserDao userService;
+    public UserDetailsServiceImpl userService;
 
+    public AdminController(UserDetailsServiceImpl userService) {
+        this.userService = userService;
+    }
 
-    //Закоментировал, потому что просто выводится текст /admin/start
-   /*@GetMapping("start" )
+    @GetMapping("/admin" )
     public String startAdmin(ModelMap modelMap) {
-        List<User> userList = userService.findAll();
-        modelMap.addAttribute("listUsers", userList);
-
-        return "/admin/start";
-    }*/
-
-
-    @GetMapping("start")
-    public ModelAndView index(ModelAndView modelAndView){
-        List<User> userList = userService.findAll();
-        modelAndView.addObject("listUsers", userList );
-        modelAndView.setViewName("admin/start");
-        return modelAndView;
+        Iterable<User> usersList = userService.findAll();
+        Set<Role>rolesList = Role.getRolesSet();
+        modelMap.addAttribute("usersList", usersList);
+        modelMap.addAttribute("roles",rolesList);
+        //List<User> userList = userService.findAll();
+        //modelMap.addAttribute("listUsers", userList);
+        return "admin";
     }
 
-    @GetMapping(value = "/new")
-    public ModelAndView addNewUserForm(ModelAndView modelAndView) {
-        getNewModelAndView(modelAndView);
-        modelAndView.addObject("isAdmin", false);
-        modelAndView.addObject("isUser", true);
-        modelAndView.setViewName("admin/add_new");
-        return modelAndView;
-    }
-
-    @PostMapping("/new")
-    public String newUser(@RequestParam(name="isAdmin", required = false) boolean isAdmin,
-                          @RequestParam(name="isUser", required = false) boolean isUser,
-                          @ModelAttribute User user) {
+    @PostMapping("/create")
+    public String createUser(HttpServletRequest request,
+                             @RequestParam(name = "isAdmin",required = false)boolean isAdmin,
+                             @RequestParam(name ="isUser", required = false)boolean isUser){
+        User user = new User();
+        user.setLogin(request.getParameter("newName").trim());
+        user.setLastName(request.getParameter("newLastName").trim());
+        user.setAge(Integer.parseInt(request.getParameter("newAge")));
+        user.setEmail(request.getParameter("newEmail").trim());
+        user.setPassword(request.getParameter("newPassword").trim());
         Set<Role> rolesToAdd = new HashSet<>();
         if (isUser) {
             rolesToAdd.add(new Role(1L, "ROLE_USER"));
@@ -59,59 +53,35 @@ public class AdminController {
             rolesToAdd.add(new Role(2L, "ROLE_ADMIN"));
         }
         user.setRoles(rolesToAdd);
-        userService.save(user);
-        return "redirect:/admin/start";
+        userService.saveUser(user);
+        return "redirect:/admin";
     }
 
-    @GetMapping("/edit")
-    public ModelAndView editForm(@RequestParam(name = "id", defaultValue = "1") long id) {
-        ModelAndView mav = new ModelAndView("admin/update");
-        //User user = userService.readUser(id);
-        User user = userService.findById(id).orElseThrow();
-        mav.addObject("user", user);
-        return mav;
-    }
-
-    @PostMapping("/edit")
-    public String editUser(@RequestParam(name = "id", defaultValue = "1") long id,
-                           @ModelAttribute User user) {
-        Set<Role>  setOldRoles = userService.findById(id).orElseThrow().getRoles();
-        user.setRoles(setOldRoles);
-        //userService.updateUser(user);
-        userService.save(user);
-        return "redirect:/admin/start";
-    }
 
     @GetMapping("/delete")
     public String deleteUserForm(@RequestParam(name = "id", defaultValue = "1") long id) {
         //userService.deleteUser(id);
         userService.deleteById(id);
-        return "redirect:/admin/start";
+        return "redirect:/admin";
     }
 
-    @GetMapping("/search")
-    public String findUserByIdForm() {
-        return "/admin/search_form";
+    @PostMapping(value = "/edit")
+    public String saveUserMapping(ModelMap model,
+                                  @RequestParam Long id,
+                                  @RequestParam Integer age,
+                                  @RequestParam String first_name,
+                                  @RequestParam String last_name,
+                                  @RequestParam String password,
+                                  @RequestParam String email,
+                                  @RequestParam(value = "newRoles", required = false) long[]roles){
+        User user = userService.findById(id);
+        user.setPassword(password);
+        user.setLogin(first_name);
+        user.setLastName(last_name);
+        user.setEmail(email);
+        user.setAge(age);
+        userService.updateUser(user);
+        return "redirect:/admin";
     }
 
-    @PostMapping("/searchResult")
-    public ModelAndView findUserResultForm(@RequestParam(name = "id", defaultValue = "1") long id,
-                                           ModelAndView mav) {
-        //User user = userService.readUser(id);
-        User user = userService.findById(id).orElseThrow();
-        mav.setViewName("/admin/search_result_form");
-        mav.addObject("user", user);
-        return mav;
-    }
-
-    private void getNewModelAndView(ModelAndView modelAndView) {
-        User user = new User();
-        user.setUsername("somebody");
-        user.setPassword("password");
-        System.out.println(user);
-        //List<Role> listRoles = userService.rolesList();
-        Set<Role> listRoles = Role.getRolesSet();
-        modelAndView.addObject("roles", listRoles);
-        modelAndView.addObject("user", user);
-    }
 }
