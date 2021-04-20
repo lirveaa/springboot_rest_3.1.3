@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
 import javax.servlet.http.HttpServletRequest;
+import java.security.Principal;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -24,14 +25,12 @@ public class AdminController {
         this.userService = userService;
     }
 
-    @GetMapping("/admin" )
+    @GetMapping("/admin")
     public String startAdmin(ModelMap modelMap) {
-        Iterable<User> usersList = userService.findAll();
-        Set<Role>rolesList = Role.getRolesSet();
-        modelMap.addAttribute("usersList", usersList);
-        modelMap.addAttribute("roles",rolesList);
-        //List<User> userList = userService.findAll();
-        //modelMap.addAttribute("listUsers", userList);
+        Iterable<User> userList = userService.findAll();
+        Set<Role> rolesList = Role.getRolesSet();
+        modelMap.addAttribute("usersList", userList);
+        modelMap.addAttribute("roles", rolesList);
         return "admin";
     }
 
@@ -67,19 +66,19 @@ public class AdminController {
 
     @PostMapping(value = "/edit")
     public String saveUserMapping(ModelMap model,
-                                  @RequestParam Long id,
-                                  @RequestParam Integer age,
-                                  @RequestParam String first_name,
-                                  @RequestParam String last_name,
-                                  @RequestParam String password,
-                                  @RequestParam String email,
+                                  @RequestParam Long idEdit,
+                                  @RequestParam Integer ageEdit,
+                                  @RequestParam String firstNameEdit,
+                                  @RequestParam String lastNameEdit,
+                                  @RequestParam String passwordEdit,
+                                  @RequestParam String emailEdit,
                                   @RequestParam(value = "newRoles", required = false) long[]roles){
-        User user = userService.findById(id);
-        user.setPassword(password);
-        user.setLogin(first_name);
-        user.setLastName(last_name);
-        user.setEmail(email);
-        user.setAge(age);
+        User user = userService.findById(idEdit);
+        user.setPassword(passwordEdit);
+        user.setLogin(firstNameEdit);
+        user.setLastName(lastNameEdit);
+        user.setEmail(emailEdit);
+        user.setAge(ageEdit);
         userService.updateUser(user);
         return "redirect:/admin";
     }
