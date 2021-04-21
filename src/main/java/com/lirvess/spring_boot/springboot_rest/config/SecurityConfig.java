@@ -9,44 +9,41 @@ import org.springframework.security.config.annotation.authentication.builders.Au
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-import org.springframework.security.crypto.password.NoOpPasswordEncoder;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
-    private final AuthProviderImpl authProvider;
+    private final UserDetailsService userDetailsService;
+    private final LoginSuccessHandler loginSuccessHandler;
 
-    public SecurityConfig(AuthProviderImpl authProvider) {
-        this.authProvider = authProvider;
+    public SecurityConfig(UserDetailsService userDetailsService, LoginSuccessHandler loginSuccessHandler) {
+        this.userDetailsService = userDetailsService;
+        this.loginSuccessHandler = loginSuccessHandler;
+
     }
 
-    @Override
-    public void configure(AuthenticationManagerBuilder auth) throws Exception {
-        //auth.inMemoryAuthentication().withUser("ADMIN").password("ADMIN").roles("ADMIN");
-        auth.authenticationProvider(authProvider);
+    @Autowired
+    public void configurerGlobalSecurity(AuthenticationManagerBuilder auth) throws Exception{
+        auth.userDetailsService(userDetailsService).passwordEncoder(passwordEncoder());
     }
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-        http
-                .authorizeRequests()
-                .antMatchers("/", "/login").anonymous()
-                .antMatchers("/admin/**").hasAnyRole("ADMIN")
-                .antMatchers("/user/**").hasAnyRole("USER")
-                .antMatchers("/hello").access("hasAnyRole('ADMIN', 'USER')")
-                .anyRequest().authenticated()
-                .and()
-                .formLogin()
-                .successHandler(new LoginSuccessHandler())
-                .and()
-                .logout()
-                .logoutSuccessUrl("/by_page");
+        http.csrf().disable();
+        http.authorizeRequests()
+                .antMatchers("/user").access("hasAnyRole('ROLE_USER')")
+                .antMatchers("/admin").access("hasAnyRole('ROLE_ADMIN')")// разрешаем входить на /user пользователям с ролью User
+                .and().formLogin()  // Spring сам подставит свою логин форму
+                .successHandler(loginSuccessHandler); // подключаем наш SuccessHandler для перенеправления по ролям
     }
+
 
     @Bean
     public PasswordEncoder passwordEncoder() {
-        return NoOpPasswordEncoder.getInstance();
+        return new BCryptPasswordEncoder();
     }
 }

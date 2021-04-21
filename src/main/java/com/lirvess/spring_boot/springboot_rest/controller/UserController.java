@@ -2,6 +2,7 @@ package com.lirvess.spring_boot.springboot_rest.controller;
 
 import com.lirvess.spring_boot.springboot_rest.model.User;
 import com.lirvess.spring_boot.springboot_rest.service.UserDetailsServiceImpl;
+import com.lirvess.spring_boot.springboot_rest.service.UserService;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -13,9 +14,9 @@ import java.security.Principal;
 @RestController
 public class UserController {
 
-    private final UserDetailsServiceImpl userService;
+    private final UserService userService;
 
-    public UserController(UserDetailsServiceImpl userService) {
+    public UserController(UserService userService) {
         this.userService = userService;
     }
 

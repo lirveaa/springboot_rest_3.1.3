@@ -4,6 +4,7 @@ import com.lirvess.spring_boot.springboot_rest.dao.UserDao;
 import com.lirvess.spring_boot.springboot_rest.model.Role;
 import com.lirvess.spring_boot.springboot_rest.model.User;
 import com.lirvess.spring_boot.springboot_rest.service.UserDetailsServiceImpl;
+import com.lirvess.spring_boot.springboot_rest.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
@@ -19,9 +20,10 @@ import java.util.Set;
 @Controller
 public class AdminController {
 
-    public UserDetailsServiceImpl userService;
+    @Autowired
+    public UserService userService;
 
-    public AdminController(UserDetailsServiceImpl userService) {
+    public AdminController(UserService userService) {
         this.userService = userService;
     }
 
@@ -72,14 +74,24 @@ public class AdminController {
                                   @RequestParam String lastNameEdit,
                                   @RequestParam String passwordEdit,
                                   @RequestParam String emailEdit,
-                                  @RequestParam(value = "newRoles", required = false) long[]roles){
+                                  @RequestParam(name = "isAdmin",required = false)boolean isAdmin,
+                                  @RequestParam(name ="isUser", required = false)boolean isUser){
         User user = userService.findById(idEdit);
         user.setPassword(passwordEdit);
         user.setLogin(firstNameEdit);
         user.setLastName(lastNameEdit);
         user.setEmail(emailEdit);
         user.setAge(ageEdit);
+        Set<Role> rolesToAdd = new HashSet<>();
+        if (isUser) {
+            rolesToAdd.add(new Role(1L, "ROLE_USER"));
+        }
+        if (isAdmin) {
+            rolesToAdd.add(new Role(2L, "ROLE_ADMIN"));
+        }
+        user.setRoles(rolesToAdd);
         userService.updateUser(user);
+
         return "redirect:/admin";
     }
 

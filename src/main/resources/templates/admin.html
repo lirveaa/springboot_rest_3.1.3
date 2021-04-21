@@ -163,16 +163,23 @@
                                                                             </div>
                                                                             <div class="form-group">
                                                                                 <label class="label-add"
-                                                                                       for="editFormControlSelect">Role</label>
-                                                                                <select class="form-control"
-                                                                                        id="editFormControlSelect"
-                                                                                        name="newRoles"
-                                                                                        multiple="multiple">
-                                                                                    <option th:each="role : ${roles}"
-                                                                                            th:selected="${user.getRoles().contains(role)}"
-                                                                                            th:value="${role.getId()}"
-                                                                                            th:text="${role.getRole()}"></option>
-                                                                                </select>
+                                                                                      >Role</label>
+<!--                                                                                <select class="form-control"-->
+<!--                                                                                        id="editFormControlSelect"-->
+<!--                                                                                        name="newRoles"-->
+<!--                                                                                        multiple="multiple">-->
+<!--                                                                                    <option th:each="role : ${roles}"-->
+<!--                                                                                            th:selected="${user.getRoles().contains(role)}"-->
+<!--                                                                                            th:value="${role.getId()}"-->
+<!--                                                                                            th:text="${role.getRole()}"></option>-->
+<!--                                                                                </select> -->
+                                                                                <div th:align="center">
+                                                                                    <p><b>Role</b></p>
+                                                                                    ADMIN: <input type="checkbox" name="isAdmin"
+                                                                                                  th:checked="${isAdmin}"><br>
+                                                                                    USER: <input type="checkbox" name="isUser"
+                                                                                                 th:checked="${isUser}"><br>
+                                                                                </div>
                                                                             </div>
                                                                         </form>
                                                                     </div>
