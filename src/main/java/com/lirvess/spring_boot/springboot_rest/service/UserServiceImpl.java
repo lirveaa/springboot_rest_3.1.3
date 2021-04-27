@@ -62,6 +62,20 @@ public class UserServiceImpl implements UserService{
     }
 
     @Override
+    public User saveNewUser(User user) {
+        User userFromDB = userDao.getUserByEmail(user.getEmail());
+        if (userFromDB != null) {
+            System.out.println("NS Error:  We have same user by Email!");
+            return null;
+        }
+        if (user.getRoles().size() == 0) {
+            user.setRoles(Collections.singleton(new Role(1L, "ROLE_USER")));
+        }
+
+        return userDao.save(user);
+    }
+
+    @Override
     public boolean updateUser(User user) {
         if(user.getRoles().size()==0){
             user.setRoles(Collections.singleton(new Role(1L, "ROLE_USER")));

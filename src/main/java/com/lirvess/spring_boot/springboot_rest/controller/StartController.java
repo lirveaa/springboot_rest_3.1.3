@@ -5,6 +5,7 @@ import com.lirvess.spring_boot.springboot_rest.dao.UserDao;
 import com.lirvess.spring_boot.springboot_rest.model.Role;
 import com.lirvess.spring_boot.springboot_rest.model.User;
 import com.lirvess.spring_boot.springboot_rest.service.UserDetailsServiceImpl;
+import com.lirvess.spring_boot.springboot_rest.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.ModelAndView;
 
 import java.security.Principal;
 import java.util.ArrayList;
@@ -26,9 +28,9 @@ import java.util.Set;
 @Controller
 public class StartController {
 
-    private UserDetailsServiceImpl userService;
+    private UserService userService;
 
-    public StartController(UserDetailsServiceImpl userService) {
+    public StartController(UserService userService) {
         this.userService = userService;
     }
 
@@ -54,6 +56,23 @@ public class StartController {
             return "redirect:/admin";
         }
         return "redirect:/user";
+    }
+
+    @GetMapping("/admin")
+    public String startAdmin(ModelMap modelMap) {
+        Iterable<User> userList = userService.findAll();
+        Set<Role> rolesList = Role.getRolesSet();
+        modelMap.addAttribute("usersList", userList);
+        modelMap.addAttribute("roles", rolesList);
+        return "admin";
+    }
+
+    @GetMapping("user")
+    public ModelAndView index(Principal principal, ModelAndView modelAndView) {
+        User user = userService.getUserByEmail(principal.getName());
+        modelAndView.addObject("user", user);
+        modelAndView.setViewName("/user");
+        return modelAndView;
     }
 
 

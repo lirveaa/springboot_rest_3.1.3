@@ -13,6 +13,7 @@ public interface UserService {
     void deleteById(Long id);
     List<User> findAll();
     boolean saveUser(User user);
+    User saveNewUser(User user);
     boolean updateUser(User user);
 
 }
