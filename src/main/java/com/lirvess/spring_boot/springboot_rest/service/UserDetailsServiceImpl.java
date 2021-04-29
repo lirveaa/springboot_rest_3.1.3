@@ -22,8 +22,6 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     @Autowired
     private UserDao userDao;
 
-
-
     @Override
     public UserDetails loadUserByUsername(String s) throws UsernameNotFoundException {
         return userDao.getUserByEmail(s);
